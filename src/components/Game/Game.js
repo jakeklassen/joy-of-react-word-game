@@ -10,30 +10,33 @@ import Keyboard from '../Keyboard/Keyboard';
 import YouLost from '../YouLost/YouLost';
 import YouWon from '../YouWon/YouWon';
 
-const GameState = {
+const GameStatus = {
   Playing: 'playing',
   Won: 'won',
   Lost: 'lost',
 };
 
+const createBlankKeys = () =>
+  Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ').reduce(
+    (acc, key) => ({
+      ...acc,
+      [key]: { status: '' },
+    }),
+    {}
+  );
+
 function Game() {
-  const [answer, setAnswer] = React.useState(() => sample(WORDS));
+  const [gameState, setGameState] = React.useState({
+    answer: sample(WORDS),
+    guesses: Array(NUM_OF_GUESSES_ALLOWED).fill({ empty: true }),
+    guessCount: 0,
+    keys: createBlankKeys(),
+    status: GameStatus.Playing,
+  });
 
-  // To make debugging easier, we'll log the solution in the console.
-  console.info({ answer });
+  const { answer, guesses, guessCount, keys, status } = gameState;
 
-  const [guesses, setGuesses] = React.useState(
-    Array(NUM_OF_GUESSES_ALLOWED).fill({ empty: true })
-  );
-
-  const [keys, setKeys] = React.useState(
-    Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ').reduce((acc, key) => {
-      acc[key] = { status: '' };
-      return acc;
-    }, {})
-  );
-  const [gameState, setGameState] = React.useState(GameState.Playing);
-  const [guessCount, setGuessCount] = React.useState(0);
+  console.log({ answer });
 
   function onGuess(guess) {
     const newGuesses = [...guesses];
@@ -61,44 +64,45 @@ function Game() {
       );
     }
 
-    setKeys(newKeys);
-
     const gameWon = result.every(({ status }) => status === 'correct');
     const gameOver = gameWon || newGuesses.every(({ empty }) => !empty);
 
-    setGuessCount(guessCount + 1);
-    setGuesses(newGuesses);
-    setGameState(
-      gameOver ? (gameWon ? GameState.Won : GameState.Lost) : GameState.Playing
-    );
+    setGameState({
+      ...gameState,
+      guesses: newGuesses,
+      guessCount: guessCount + 1,
+      keys: newKeys,
+      status: gameOver
+        ? gameWon
+          ? GameStatus.Won
+          : GameStatus.Lost
+        : GameStatus.Playing,
+    });
   }
 
   function restartGame() {
-    setAnswer(sample(WORDS));
-    setGuesses(Array(NUM_OF_GUESSES_ALLOWED).fill({ empty: true }));
-    setKeys(
-      Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ').reduce((acc, key) => {
-        acc[key] = { status: '' };
-        return acc;
-      }, {})
-    );
-    setGameState(GameState.Playing);
-    setGuessCount(0);
+    setGameState({
+      answer: sample(WORDS),
+      guesses: Array(NUM_OF_GUESSES_ALLOWED).fill({ empty: true }),
+      guessCount: 0,
+      keys: createBlankKeys(),
+      status: GameStatus.Playing,
+    });
   }
 
   return (
     <>
       <GuessResults guesses={guesses} />
 
-      {gameState === GameState.Won && (
+      {status === GameStatus.Won && (
         <YouWon guessCount={guessCount} onRestartClick={restartGame} />
       )}
-      {gameState === GameState.Lost && (
+      {status === GameStatus.Lost && (
         <YouLost answer={answer} onRestartClick={restartGame} />
       )}
 
-      {gameState === GameState.Playing && <GuessInput onGuess={onGuess} />}
-      {gameState === GameState.Playing && <Keyboard keys={keys} />}
+      {status === GameStatus.Playing && <GuessInput onGuess={onGuess} />}
+      {status === GameStatus.Playing && <Keyboard keys={keys} />}
     </>
   );
 }

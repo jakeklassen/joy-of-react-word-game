@@ -177,7 +177,6 @@ h1 {
 }
 
 .banner > button {
-  /* nice button style with rounded borders and pleasing background */
   background: var(--color-gray-100);
   color: var(--color-gray-900);
   border-radius: 4px;
