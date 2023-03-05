@@ -14,6 +14,7 @@ function GuessInput({ onGuess }) {
     <form className="guess-input-wrapper" onSubmit={onSubmit}>
       <label htmlFor="guess-input">Enter guess:</label>
       <input
+        autoFocus
         required
         id="guess-input"
         type="text"
