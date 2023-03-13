@@ -6,7 +6,7 @@ function Guess({ guess }) {
   return (
     <p className="guess">
       {result.map(({ letter, status }, index) => (
-        <span className={`cell ${status}`} key={index}>
+        <span className={status ? `cell ${status}` : 'cell'} key={index}>
           {letter}
         </span>
       ))}
